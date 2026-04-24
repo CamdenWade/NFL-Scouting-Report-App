@@ -8,6 +8,7 @@ data/raw/
 data/processed/*.rds
 
 *.html
+!docs/*.html
 *_files/
 .httr-oauth
 .quarto
