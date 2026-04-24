@@ -21,17 +21,6 @@ An interactive Shiny app that generates customizable NFL scouting reports using 
 - gt (tables)
 - Quarto (report generation)
 
-## How to Run
-```r
-source("R/00_packages.R")
-source("R/data_prep.R")
-build_scouting_data(seasons = 2023:2025)
-
-source("R/player_data_prep.R")
-build_player_summaries()
-
-shiny::runApp()
-```
 ## Screenshots
 
 ### Overview Dashboard
@@ -45,3 +34,26 @@ shiny::runApp()
 
 ### Player Layer
 ![Players](assets/screenshots/player_layer.png)
+
+<p align="center">
+  <img src="assets/screenshots/overview.png" width="800">
+</p>
+
+## Example Scouting Report
+
+You can view a sample generated scouting report here:
+
+[Download Sample Report](docs/sample_report.html)
+
+## How to Run
+```r
+source("R/00_packages.R")
+source("R/data_prep.R")
+build_scouting_data(seasons = 2023:2025)
+
+source("R/player_data_prep.R")
+build_player_summaries()
+
+shiny::runApp()
+```
+
