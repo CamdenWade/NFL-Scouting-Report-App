@@ -21,6 +21,20 @@ An interactive Shiny app that generates customizable NFL scouting reports using 
 - gt (tables)
 - Quarto (report generation)
 
+## Data
+
+This project uses NFL play-by-play data from the nflverse ecosystem.
+
+Data is not stored in this repository due to size constraints. Instead, it can be recreated using the provided scripts:
+
+```r
+source("R/data_prep.R")
+build_scouting_data(seasons = 2023:2025)
+
+source("R/player_data_prep.R")
+build_player_summaries()
+```
+
 ## Screenshots
 
 ### Overview Dashboard
