@@ -1,0 +1,30 @@
+body {
+  background-color: #f6f8fb;
+}
+
+.card {
+  border: none;
+  border-radius: 18px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+}
+
+.bslib-value-box {
+  border-radius: 18px;
+}
+
+.nav-tabs .nav-link {
+  font-weight: 600;
+}
+
+.plot-card .card-body {
+  padding: 0.75rem 1rem 1rem 1rem;
+}
+
+.btn {
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.card p {
+  line-height: 1.6;
+}

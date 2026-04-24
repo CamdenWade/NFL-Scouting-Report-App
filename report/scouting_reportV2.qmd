@@ -1,0 +1,390 @@
+---
+title: "NFL Scouting Report"
+format:
+  html:
+    toc: true
+    theme: cosmo
+    embed-resources: true
+execute:
+  echo: false
+  warning: false
+  message: false
+params:
+  offense_team: "KC"
+  defense_team: "SF"
+  season: 2025
+  situation: "all"
+  project_dir: ""
+---
+
+```{r setup}
+library(tidyverse)
+library(scales)
+library(gt)
+library(htmltools)
+
+project_dir <- params$project_dir
+
+if (is.null(project_dir) || identical(project_dir, "")) {
+  project_dir <- getwd()
+}
+
+project_dir <- normalizePath(project_dir, winslash = "/", mustWork = FALSE)
+
+if (!file.exists(file.path(project_dir, "R", "helpers.R"))) {
+  parent_dir <- dirname(project_dir)
+  if (file.exists(file.path(parent_dir, "R", "helpers.R"))) {
+    project_dir <- parent_dir
+  }
+}
+
+source(file.path(project_dir, "R", "helpers.R"))
+source(file.path(project_dir, "R", "metrics.R"))
+source(file.path(project_dir, "R", "branding.R"))
+
+scouting_data <- readRDS(file.path(project_dir, "data", "processed", "scouting_data.rds"))
+
+offense_data <- get_team_unit_situation_data(
+  data = scouting_data,
+  team = params$offense_team,
+  season = params$season,
+  unit = "offense",
+  situation = params$situation
+)
+
+defense_data <- get_team_unit_situation_data(
+  data = scouting_data,
+  team = params$defense_team,
+  season = params$season,
+  unit = "defense",
+  situation = params$situation
+)
+
+offense_overview <- calculate_team_overview(offense_data, "offense")
+defense_overview <- calculate_team_overview(defense_data, "defense")
+offense_proe <- calculate_proe_summary(offense_data, "offense")
+defense_proe <- calculate_proe_summary(defense_data, "defense")
+matchup_overview <- calculate_matchup_overview(offense_data, defense_data)
+matchup_down <- calculate_matchup_down_table(offense_data, defense_data)
+matchup_field_zone <- calculate_matchup_field_zone_table(offense_data, defense_data)
+
+offense_color <- get_primary_color(params$offense_team)
+defense_color <- get_primary_color(params$defense_team)
+
+summary_text <- build_matchup_summary_text(
+  offense_team = params$offense_team,
+  defense_team = params$defense_team,
+  matchup_overview = matchup_overview
+)
+
+metric_card <- function(title, value, subtitle, color) {
+  div(
+    class = "metric-card",
+    style = paste0("border-top: 5px solid ", color, ";"),
+    h4(title),
+    h2(value),
+    p(subtitle)
+  )
+}
+```
+
+<style>
+body {
+  background-color: #f6f8fb;
+}
+
+.quarto-title-block {
+  padding: 24px 28px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #111827, #374151);
+  color: white;
+  margin-bottom: 24px;
+}
+
+h1, h2, h3 {
+  font-weight: 750;
+}
+
+.report-hero {
+  padding: 24px;
+  border-radius: 20px;
+  background: white;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+  margin-bottom: 24px;
+}
+
+.matchup-title {
+  font-size: 34px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.matchup-subtitle {
+  font-size: 16px;
+  color: #6b7280;
+}
+
+.summary-box {
+  padding: 20px 24px;
+  border-radius: 18px;
+  background: #ffffff;
+  border-left: 6px solid #111827;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+  font-size: 17px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(160px, 1fr));
+  gap: 16px;
+  margin: 22px 0;
+}
+
+.metric-card {
+  background: white;
+  border-radius: 18px;
+  padding: 18px 20px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+}
+
+.metric-card h4 {
+  margin: 0;
+  font-size: 14px;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.metric-card h2 {
+  margin: 8px 0 4px;
+  font-size: 30px;
+}
+
+.metric-card p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.section-card {
+  padding: 22px;
+  border-radius: 18px;
+  background: white;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+  margin-bottom: 24px;
+}
+
+.gt_table {
+  font-size: 15px;
+}
+</style>
+
+<div class="report-hero">
+  <div class="matchup-title">`r params$offense_team` Offense vs `r params$defense_team` Defense</div>
+  <div class="matchup-subtitle">
+    Season: `r params$season` &nbsp; | &nbsp; Situation: `r params$situation`
+  </div>
+</div>
+
+# Executive Summary
+
+<div class="summary-box">
+`r summary_text`
+</div>
+
+# Key Metrics
+
+<div class="metric-grid">
+```{r, results='asis'}
+tagList(
+  metric_card(
+    "Offense EPA/Play",
+    format_num(offense_overview$epa_per_play),
+    paste(params$offense_team, "offensive efficiency"),
+    offense_color
+  ),
+  metric_card(
+    "Defense EPA/Play",
+    format_num(defense_overview$epa_per_play),
+    paste(params$defense_team, "defensive efficiency"),
+    defense_color
+  ),
+  metric_card(
+    "Offense PROE",
+    format_pct(offense_proe$proe),
+    "Pass rate over expected",
+    offense_color
+  ),
+  metric_card(
+    "Opponent PROE Allowed",
+    format_pct(defense_proe$proe),
+    "Passing tendency faced",
+    defense_color
+  )
+)
+```
+</div>
+
+# Offense Profile
+
+<div class="section-card">
+
+```{r}
+offense_overview %>%
+  transmute(
+    Plays = plays,
+    `Pass Rate` = percent(pass_rate, accuracy = 0.1),
+    `EPA/Play` = round(epa_per_play, 3),
+    `Success Rate` = percent(success_rate, accuracy = 0.1),
+    `Explosive Rate` = percent(explosive_rate, accuracy = 0.1)
+  ) %>%
+  gt() %>%
+  tab_header(
+    title = paste(params$offense_team, "Offensive Overview")
+  ) %>%
+  tab_options(
+    table.font.names = "Inter",
+    heading.title.font.size = 20
+  )
+```
+
+</div>
+
+# Defense Profile
+
+<div class="section-card">
+
+```{r}
+defense_overview %>%
+  transmute(
+    Plays = plays,
+    `Pass Rate Faced` = percent(pass_rate, accuracy = 0.1),
+    `Defensive EPA/Play` = round(epa_per_play, 3),
+    `Stop Rate` = percent(success_rate, accuracy = 0.1),
+    `Explosive Prevention Rate` = percent(explosive_rate, accuracy = 0.1)
+  ) %>%
+  gt() %>%
+  tab_header(
+    title = paste(params$defense_team, "Defensive Overview")
+  ) %>%
+  tab_options(
+    table.font.names = "Inter",
+    heading.title.font.size = 20
+  )
+```
+
+</div>
+
+# Matchup Overview
+
+<div class="section-card">
+
+```{r}
+matchup_overview %>%
+  mutate(
+    offense_value = case_when(
+      metric %in% c("Pass Rate", "Success Rate", "Explosive Rate", "PROE") ~ percent(offense_value, accuracy = 0.1),
+      TRUE ~ as.character(round(offense_value, 3))
+    ),
+    defense_value = case_when(
+      metric %in% c("Pass Rate", "Success Rate", "Explosive Rate", "PROE") ~ percent(defense_value, accuracy = 0.1),
+      TRUE ~ as.character(round(defense_value, 3))
+    ),
+    matchup_edge = case_when(
+      metric %in% c("Pass Rate", "Success Rate", "Explosive Rate", "PROE") ~ percent(matchup_edge, accuracy = 0.1),
+      TRUE ~ as.character(round(matchup_edge, 3))
+    )
+  ) %>%
+  rename(
+    Metric = metric,
+    `Offense Value` = offense_value,
+    `Defense Value` = defense_value,
+    `Matchup Edge` = matchup_edge
+  ) %>%
+  gt() %>%
+  tab_header(
+    title = "Offense vs Defense Matchup Snapshot"
+  ) %>%
+  tab_options(
+    table.font.names = "Inter",
+    heading.title.font.size = 20
+  )
+```
+
+</div>
+
+# Down-by-Down Matchup
+
+<div class="section-card">
+
+```{r}
+matchup_down %>%
+  mutate(
+    offense_pass_rate = percent(offense_pass_rate, accuracy = 0.1),
+    defense_pass_rate = percent(defense_pass_rate, accuracy = 0.1),
+    pass_rate_gap = percent(pass_rate_gap, accuracy = 0.1),
+    offense_epa = round(offense_epa, 3),
+    defense_epa = round(defense_epa, 3),
+    epa_gap = round(epa_gap, 3)
+  ) %>%
+  rename(
+    Down = down,
+    `Off Pass Rate` = offense_pass_rate,
+    `Off EPA` = offense_epa,
+    `Def Pass Rate Faced` = defense_pass_rate,
+    `Def EPA` = defense_epa,
+    `Pass Rate Gap` = pass_rate_gap,
+    `EPA Gap` = epa_gap
+  ) %>%
+  gt() %>%
+  tab_header(
+    title = "Down-by-Down Tendencies"
+  ) %>%
+  tab_options(
+    table.font.names = "Inter",
+    heading.title.font.size = 20
+  )
+```
+
+</div>
+
+# Field Zone Matchup
+
+<div class="section-card">
+
+```{r}
+matchup_field_zone %>%
+  mutate(
+    offense_pass_rate = percent(offense_pass_rate, accuracy = 0.1),
+    defense_pass_rate = percent(defense_pass_rate, accuracy = 0.1),
+    pass_rate_gap = percent(pass_rate_gap, accuracy = 0.1),
+    offense_epa = round(offense_epa, 3),
+    defense_epa = round(defense_epa, 3),
+    epa_gap = round(epa_gap, 3)
+  ) %>%
+  rename(
+    `Field Zone` = field_zone,
+    `Off Pass Rate` = offense_pass_rate,
+    `Off EPA` = offense_epa,
+    `Def Pass Rate Faced` = defense_pass_rate,
+    `Def EPA` = defense_epa,
+    `Pass Rate Gap` = pass_rate_gap,
+    `EPA Gap` = epa_gap
+  ) %>%
+  gt() %>%
+  tab_header(
+    title = "Field Position Tendencies"
+  ) %>%
+  tab_options(
+    table.font.names = "Inter",
+    heading.title.font.size = 20
+  )
+```
+
+</div>
+
+# Notes
+
+This report is generated from the Shiny scouting app using play-by-play data and the selected situation filter.
