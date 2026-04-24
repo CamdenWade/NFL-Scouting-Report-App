@@ -1,0 +1,12 @@
+name: NFL-Scouting-Report-App
+title: NFL-Scouting-Report-App
+username: camdenwade
+account: camdenwade
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 17223819
+bundleId: 11902316
+url: https://camdenwade.shinyapps.io/NFL-Scouting-Report-App/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
