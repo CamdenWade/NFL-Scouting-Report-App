@@ -5,6 +5,7 @@ This project was built to demonstrate the ability to create a full end-to-end sp
 
 ## Overview
 An interactive Shiny app that generates customizable NFL scouting reports using play-by-play data.
+**Live App:** https://camden-wade.shinyapps.io/NFL-Scouting-Report-App/
 
 ## Features
 - Offensive and defensive team profiles
