@@ -12,3 +12,7 @@ data/processed/*.rds
 *_files/
 .httr-oauth
 .quarto
+
+.RData
+.Rhistory
+.Rproj.user/

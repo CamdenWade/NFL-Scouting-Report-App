@@ -138,6 +138,26 @@ build_scouting_data <- function(
       )
     )
   
+  scouting_data <- scouting_data %>%
+    select(
+      season, week, game_id, play_id,
+      posteam, defteam,
+      play_type,
+      is_pass, is_run,
+      down, ydstogo, yardline_100,
+      qtr, half_seconds_remaining,
+      score_diff,
+      neutral_situation, early_down, third_down,
+      red_zone, goal_to_go, short_yardage, long_yardage, two_minute,
+      distance_group, field_zone,
+      yards_gained, epa,
+      explosive_play, success,
+      expected_pass_prob, proe_play,
+      passer_player_name, passer_player_id,
+      rusher_player_name, rusher_player_id,
+      receiver_player_name, receiver_player_id
+    )
+  
   saveRDS(scouting_data, save_path)
   saveRDS(fourth_down_data, fourth_down_save_path)
   saveRDS(pass_model, "data/processed/pass_model.rds")

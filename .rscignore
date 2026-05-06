@@ -1,0 +1,8 @@
+.RData
+.Rhistory
+.Rproj.user/
+.git/
+.github/
+assets/
+docs/
+data/raw/
